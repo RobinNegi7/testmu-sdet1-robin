@@ -19,6 +19,7 @@
 
 import { test, expect } from '@playwright/test';
 import { LoginPage } from './pages/LoginPage.js';
+import { explainFailure } from '../utils/aiHelper.js';
 import {
     VALID_USER,
     LOCKOUT_USER,
@@ -28,6 +29,26 @@ import {
     SQL_INJECTION_PAYLOADS,
     generateString,
 } from '../data/login-test-data.js';
+
+// ════════════════════════════════════════════════════════════════
+// 🤖 AI FAILURE EXPLAINER — Global hook (applies to every test)
+//
+//    When any test fails, Gemini explains the error in plain English,
+//    suggests the root cause, and recommends a fix.
+//
+//    Requirements:
+//      Set GEMINI_API_KEY in your environment before running:
+//        PowerShell : $env:GEMINI_API_KEY = "AIza..."
+//        CMD        : set GEMINI_API_KEY=AIza...
+// ════════════════════════════════════════════════════════════════
+test.afterEach(async ({ }, testInfo) => {
+    if (testInfo.status !== testInfo.expectedStatus) {
+        const errorMessage = testInfo.error?.message ?? 'Unknown error';
+        const aiExplanation = await explainFailure(errorMessage);
+        console.log(aiExplanation);
+    }
+});
+
 
 // ════════════════════════════════════════════════════════════════
 // 1. VALID LOGIN
